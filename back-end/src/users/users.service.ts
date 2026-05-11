@@ -1,4 +1,3 @@
-// src/users/users.service.ts
 
 import {
   Injectable,
@@ -27,7 +26,6 @@ export class UsersService {
     @InjectRepository(Lesson)
     private readonly lessonRepository: Repository<Lesson>,
   ) {}
-
 
   async updateById(id: number, data: Partial<User>) {
     const user = await this.findById(id);
@@ -65,10 +63,8 @@ export class UsersService {
     fullName: string;
     role?: Role;
   }) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = this.userRepository.create({
       ...data,
-      password: hashedPassword,
     });
     return this.userRepository.save(user);
   }
@@ -88,7 +84,6 @@ export class UsersService {
     await this.userRepository.delete(id);
     return { message: 'User deleted' };
   }
-
 
   async getProfile(userId: number) {
     return this.userRepository.findOne({
@@ -138,7 +133,6 @@ export class UsersService {
       where: { role: Role.INSTRUCTOR },
     });
   }
-
 
   async getSystemStats() {
     const [
