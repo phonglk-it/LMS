@@ -32,6 +32,6 @@ async function bootstrap() {
   await seedAdmin(dataSource);
 
   await app.listen(8000);
-  console.log(`🚀 Edurio API is running on: http://localhost:8000`);
+  console.log(`Edurio API is running on: http://localhost:8000`);
 }
 bootstrap();

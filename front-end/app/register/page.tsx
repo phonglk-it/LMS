@@ -23,27 +23,39 @@ export default function RegisterPage() {
   const handleRegister = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    if (Object.values(formData).some(val => !val)) {
+    const cleanData = {
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+    };
+
+    if (Object.values(cleanData).some(val => !val)) {
       return toast.error("Missing information", { description: "Please fill all fields" });
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (cleanData.password !== cleanData.confirmPassword) {
       return toast.error("Password mismatch", { description: "Passwords do not match" });
     }
 
     setLoading(true);
     try {
       await api.post("/auth/register", {
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
+        fullName: cleanData.fullName,
+        email: cleanData.email,
+        password: cleanData.password,
+        role: "STUDENT"
       });
 
       toast.success("Account created!", { description: "You can now sign in." });
+      
       router.push("/login");
+
     } catch (error: any) {
+      console.error("Register Error:", error);
+
       toast.error("Register failed", {
-        description: error.response?.data?.message || "Something went wrong",
+        description: error.response?.data?.message || "Something went wrong during registration",
       });
     } finally {
       setLoading(false);
@@ -69,6 +81,7 @@ export default function RegisterPage() {
               className="pl-10 h-12 rounded-xl border-gray-200"
               value={formData.fullName}
               onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+              required
             />
           </div>
 
@@ -80,6 +93,7 @@ export default function RegisterPage() {
               className="pl-10 h-12 rounded-xl border-gray-200"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
+              required
             />
           </div>
 
@@ -91,6 +105,7 @@ export default function RegisterPage() {
               className="pl-10 pr-10 h-12 rounded-xl border-gray-200"
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
+              required
             />
           </div>
 
@@ -102,6 +117,7 @@ export default function RegisterPage() {
               className="pl-10 pr-10 h-12 rounded-xl border-gray-200"
               value={formData.confirmPassword}
               onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+              required
             />
             <button
               type="button"

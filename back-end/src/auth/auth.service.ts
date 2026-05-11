@@ -38,7 +38,6 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    // Compare plain text password with hashed password from DB
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
@@ -71,7 +70,6 @@ export class AuthService {
       { expiresIn: '15m' },
     );
 
-    // Make sure the path matches your Frontend structure: /auth/reset-password
     const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
 
     try {
@@ -124,7 +122,7 @@ export class AuthService {
       console.log(`Password for User ID ${payload.sub} has been updated successfully.`);
       return { message: 'Password updated successfully' };
     } catch (e) {
-      console.error('❌ RESET ERROR:', e.message);
+      console.error('RESET ERROR:', e.message);
       throw new BadRequestException('Token invalid or expired');
     }
   }

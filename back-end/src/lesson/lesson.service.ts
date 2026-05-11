@@ -18,13 +18,20 @@ export class LessonService {
     private enrollmentRepo: Repository<Enrollment>,
   ) {}
 
-  // ================= CREATE =================
   async create(dto: CreateLessonDto) {
-    const lesson = this.lessonRepo.create(dto);
-    return this.lessonRepo.save(lesson);
-  }
+  const lesson = this.lessonRepo.create({
+    title: dto.title,
+    content: dto.content,
+    order: dto.order,
+    videoUrl: dto.videoUrl,
+    pdfUrl: dto.pdfUrl,
 
-  // ================= ADMIN / INSTRUCTOR =================
+    course: { id: dto.courseId },
+  });
+
+  return this.lessonRepo.save(lesson);
+}
+
   async findByCourse(courseId: number) {
     return this.lessonRepo.find({
       where: { course: { id: courseId } },
@@ -32,7 +39,6 @@ export class LessonService {
     });
   }
 
-  // ================= STUDENT (PAYWALL LOGIC) =================
   async findByCourseForStudent(courseId: number, userId: number) {
     const lessons = await this.lessonRepo.find({
       where: { course: { id: courseId } },
@@ -43,7 +49,6 @@ export class LessonService {
       throw new NotFoundException('Lessons not found');
     }
 
-    // Check enrollment (đã mua chưa)
     const enrollment = await this.enrollmentRepo.findOne({
       where: {
         student: { id: userId },
@@ -53,9 +58,7 @@ export class LessonService {
 
     const isPurchased = !!enrollment;
 
-    // 🔥 PAYWALL LOGIC CHUẨN
     const processedLessons = lessons.map((lesson, index) => {
-      // CHƯA MUA → khóa từ bài 4 trở đi
       if (!isPurchased && index >= 3) {
         return {
           ...lesson,
@@ -67,7 +70,6 @@ export class LessonService {
         };
       }
 
-      // FREE hoặc đã mua
       return {
         ...lesson,
         isLocked: false,

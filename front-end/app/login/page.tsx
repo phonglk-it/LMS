@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
-import Link from "next/link"; // ✅ Thêm Link của Next.js
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,29 +19,49 @@ export default function LoginPage() {
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!email || !password) {
-      return toast.error("Missing information", { description: "Please enter your email and password" });
+    
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail || !password) {
+      return toast.error("Missing information", { 
+        description: "Please enter your email and password" 
+      });
     }
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", { 
+        email: cleanEmail,
+        password 
+      });
+
       const { accessToken, user } = res.data;
 
-      Cookies.set("accessToken", accessToken, { expires: 1, sameSite: "lax" });
+      Cookies.set("accessToken", accessToken, { 
+        expires: 1, 
+        path: '/', 
+        sameSite: "lax" 
+      });
+      
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Welcome back to EduRio!");
 
-      const role = user.role.toLowerCase();
+      const userRole = user?.role ? user.role.toLowerCase() : "student";
+      
       setTimeout(() => {
-        router.push(`/${role}`);
+        router.push(`/${userRole}`);
+        router.refresh();
       }, 500);
 
     } catch (error: any) {
+
+      const message =
+        error?.response?.data?.message || "Invalid email or password";
+
       toast.error("Login failed", {
-        description: error.response?.data?.message || "Invalid credentials",
+        description: Array.isArray(message) ? message.join(", ") : message,
       });
     } finally {
       setLoading(false);
@@ -90,7 +110,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* ✅ THÊM DÒNG NÀY ĐỂ QUÊN MẬT KHẨU */}
           <div className="flex justify-end">
             <Link 
               href="/forgot-password" 
